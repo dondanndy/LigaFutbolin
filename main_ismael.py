@@ -1,6 +1,8 @@
 import numpy as np
 import random
 
+from typing import Union
+
 
 PLAYER_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
@@ -37,7 +39,7 @@ def update_players_relationship_probability(matrix: np.array, update_factor: flo
     matrix[idy, idx] *= update_factor
 
 
-def set_player_not_elegible(matrix: np.array, player: int) -> None:
+def set_player_not_elegible(matrix: np.array, player: Union[int, np.array]) -> None:
   matrix[:, player] = 0
 
 
@@ -78,8 +80,11 @@ for _ in range(MATCHDAYS):
 
   first_player_chosen_for_each_match = np.random.choice(players, num_games_per_matchday, replace=False)
 
-  for player in first_player_chosen_for_each_match:
+  # These players are already selected:
+  set_player_not_elegible(matchday_teammates_prob_matrix, first_player_chosen_for_each_match)
+  set_player_not_elegible(matchday_rivals_prob_matrix, first_player_chosen_for_each_match)
 
+  for player in first_player_chosen_for_each_match:
     def select_player(player: int, selected_player_prob: np.array) -> int:
       selected_player = np.random.choice(players, 1, p=normalize(selected_player_prob))[0]
 
@@ -87,10 +92,6 @@ for _ in range(MATCHDAYS):
       set_player_not_elegible(matchday_teammates_prob_matrix, selected_player)
 
       return selected_player
-
-    # This player is already selected:
-    set_player_not_elegible(matchday_teammates_prob_matrix, player)
-    set_player_not_elegible(matchday_rivals_prob_matrix, player)
 
     # Teammate
     teammates_prob = matchday_teammates_prob_matrix[player]
